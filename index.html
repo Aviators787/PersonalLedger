@@ -114,6 +114,7 @@
                         <option value="Medicine">Medicine</option>
                         <option value="Education">Education</option>
                         <option value="Travel">Travel</option>
+                        <option value="Leisure">Leisure</option> <!-- ADDED LEISURE -->
                         <option value="Bills">Bills</option>
                         <option value="Telecom">Telecom</option>
                     </select>
@@ -153,10 +154,9 @@
             if (data) { localRecords = data; renderRecords(localRecords); }
         }
 
-        // ADDED: Wipe All Records function
         async function clearAllRecords() {
             if(!confirm("Are you absolutely sure you want to delete EVERY record? This cannot be undone.")) return;
-            const { error } = await _supabase.from('personal_expenses').delete().neq('id', 0); // Deletes everything where ID is not 0
+            const { error } = await _supabase.from('personal_expenses').delete().neq('id', 0); 
             if (error) {
                 alert("Error wiping records: " + error.message);
             } else {
@@ -173,7 +173,8 @@
         function renderRecords(records) {
             let logHTML = '';
             let net = 0, mEarned = 0, mSpent = 0;
-            const cats = { Food: 0, Medicine: 0, Education: 0, Telecom: 0, Bills: 0, Travel: 0, Other: 0 };
+            // Updated Categories Object
+            const cats = { Food: 0, Medicine: 0, Education: 0, Telecom: 0, Bills: 0, Travel: 0, Leisure: 0, Other: 0 };
             const peopleDebt = {}; 
             const now = new Date();
 
