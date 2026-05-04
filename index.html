@@ -3,139 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PrivateLedger | Personal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>PrivateLedger | Restored Settle Actions</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap');
-        body { font-family: 'Geist', sans-serif; background-color: #fafafa; color: #111827; padding-bottom: 120px; }
-        .card-personal { background: white; border: 1px solid #f3f4f6; border-radius: 24px; padding: 20px; }
-        nav { position: fixed; bottom: 0; left: 0; right: 0; height: 90px; background: white; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        input, select { border-radius: 14px !important; padding: 14px !important; outline: none; width: 100%; background: #f9fafb; border: 1px solid #f3f4f6; margin-bottom: 12px; font-size: 14px; }
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Geist', sans-serif; background-color: #fcfcfc; color: #111827; padding-bottom: 120px; }
         
-        .badge-lent { background: #eef2ff; color: #4f46e5; font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
-        .badge-borrow { background: #fff1f2; color: #e11d48; font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
-        .badge-income { background: #f0fdf4; color: #16a34a; font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
-        .badge-settled { background: #f3f4f6; color: #9ca3af; font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+        #privacyShield { transition: opacity 0.4s ease; display: none; }
+        .app-content { filter: blur(25px); pointer-events: none; transition: filter 0.5s ease; }
+        .app-unlocked { filter: blur(0); pointer-events: auto; }
+
+        .card-base { background: white; border-radius: 28px; padding: 24px; border: 1px solid #f3f4f6; }
+        .report-card { background: #f9faff; border: 1px solid #eef2ff; }
         
-        .search-container { position: relative; width: 100%; }
-        .search-bar { background: #f3f4f6; border-radius: 18px; padding: 16px 20px 16px 52px !important; width: 100%; font-size: 14px; border: none; outline: none; }
-        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 18px; pointer-events: none; }
+        #activityLog { height: 450px; overflow-y: auto; scrollbar-width: none; }
+        #activityLog::-webkit-scrollbar { display: none; }
+
+        .search-bar { background: #f3f6f9; border-radius: 18px; padding: 18px 20px 18px 52px !important; width: 100%; border: none; outline: none; }
+        
+        .badge-pill { font-size: 9px; font-weight: 700; padding: 6px 12px; border-radius: 10px; text-transform: uppercase; }
+        .badge-expense { background: #f3f4f6; color: #9ca3af; }
+        .badge-borrowed { background: #fff1f2; color: #e11d48; }
+        .badge-lent { background: #eef2ff; color: #4f46e5; }
+        .badge-income { background: #f0fdf4; color: #16a34a; }
+
+        .action-btn { font-size: 9px; font-weight: 700; padding: 6px 12px; border-radius: 10px; background: #fff1f2; color: #e11d48; margin-left: 8px; border: none; }
+        .action-btn-green { background: #f0fdf4; color: #16a34a; }
+
+        .currency-btn { padding: 4px 12px; border-radius: 10px; font-size: 10px; font-weight: 800; border: 1px solid #f3f4f6; color: #9ca3af; }
+        .currency-active { background: #6366f1; color: white; border-color: #6366f1; }
+        
+        nav { position: fixed; bottom: 0; left: 0; right: 0; height: 100px; background: white; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
-    <header class="p-8 flex justify-between items-end bg-white">
-        <div>
-            <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-1">Personal Finance</p>
-            <h1 class="text-2xl font-light tracking-tight">Private<span class="font-bold">Ledger</span></h1>
-        </div>
-        <div class="text-right">
-            <p id="totalBalance" class="text-xl font-medium tracking-tighter">0</p>
-            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Net Position</p>
-        </div>
-    </header>
-
-    <main class="max-w-xl mx-auto p-6 space-y-6">
-        
-        <!-- Monthly Report -->
-        <div class="card-personal bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-sm">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="currentMonthName" class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Monthly Report</h3>
-                <i class="ri-pie-chart-2-line text-indigo-300"></i>
-            </div>
-            <div class="grid grid-cols-3 gap-2 text-center">
-                <div><p class="text-[8px] uppercase text-gray-400 font-bold mb-1">Earned</p><p id="monthEarned" class="text-sm font-bold text-green-600">0</p></div>
-                <div><p class="text-[8px] uppercase text-gray-400 font-bold mb-1">Spent</p><p id="monthSpent" class="text-sm font-bold text-red-500">0</p></div>
-                <div class="border-l border-indigo-100"><p class="text-[8px] uppercase text-gray-400 font-bold mb-1">Savings</p><p id="monthSavings" class="text-sm font-bold text-indigo-700">0</p></div>
-            </div>
-        </div>
-
-        <!-- Debt Totals -->
-        <div class="grid grid-cols-2 gap-4">
-            <div class="card-personal bg-indigo-600 text-white shadow-lg shadow-indigo-100">
-                <p class="text-[10px] font-bold uppercase opacity-70 tracking-widest">To Collect</p>
-                <h2 id="toCollect" class="text-xl font-semibold mt-1">0</h2>
-            </div>
-            <div class="card-personal bg-zinc-900 text-white shadow-lg shadow-zinc-100">
-                <p class="text-[10px] font-bold uppercase opacity-70 tracking-widest">To Return</p>
-                <h2 id="toReturn" class="text-xl font-semibold mt-1">0</h2>
-            </div>
-        </div>
-
-        <!-- Category Insight -->
-        <div class="card-personal bg-white shadow-sm border-dashed border-2">
-            <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500 mb-4">Category Breakdown</h3>
-            <div id="categoryBreakdown" class="grid grid-cols-2 gap-y-2 gap-x-4"></div>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="search-container">
-            <i class="ri-search-line search-icon"></i>
-            <input type="text" id="searchInput" oninput="filterRecords()" placeholder="Search people, items, or dates..." class="search-bar">
-        </div>
-
-        <!-- Activity Log -->
-        <div class="space-y-4">
-            <div class="flex justify-between items-center px-2">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">Activity Log</h3>
-                <button onclick="openAuthModal(clearAllRecords)" class="text-[9px] font-bold uppercase text-red-500 bg-red-50 px-3 py-1 rounded-full">Wipe All</button>
-            </div>
-            <div id="activityLog" class="space-y-3"></div>
-        </div>
-    </main>
-
-    <nav>
-        <button onclick="openModal('Lent')" class="flex flex-col items-center gap-1 text-zinc-400"><i class="ri-hand-coin-line text-2xl"></i><span class="text-[9px] font-bold uppercase">Lent</span></button>
-        <button onclick="openModal('General')" class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-200 -translate-y-4 active:scale-90 transition-all"><i class="ri-add-line text-3xl"></i></button>
-        <button onclick="openModal('Borrowed')" class="flex flex-col items-center gap-1 text-zinc-400"><i class="ri-refund-2-line text-2xl"></i><span class="text-[9px] font-bold uppercase">Borrowed</span></button>
-    </nav>
-
-    <!-- Entry Modal -->
-    <div id="entryModal" class="fixed inset-0 hidden items-center justify-center z-[2000] p-6">
-        <div class="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onclick="closeModal()"></div>
-        <div class="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-2xl">
-            <h2 id="modalTitle" class="text-center text-xs font-bold uppercase mb-6 tracking-widest">Entry</h2>
-            
-            <div id="generalTypeToggle" class="hidden grid grid-cols-2 gap-2 mb-4">
-                <button onclick="setSubType('Expense')" id="btnExp" class="py-2 text-[10px] font-bold uppercase rounded-xl border-2 border-indigo-600 text-indigo-600">Spend</button>
-                <button onclick="setSubType('Income')" id="btnInc" class="py-2 text-[10px] font-bold uppercase rounded-xl border-2 border-transparent bg-zinc-50 text-zinc-400">Earn</button>
-            </div>
-
-            <div class="space-y-1">
-                <input id="eDesc" type="text" placeholder="Description">
-                <input id="eAmount" type="number" placeholder="Amount">
-                
-                <div id="generalOptions" class="hidden">
-                    <select id="eCategory">
-                        <option value="Other">Category</option>
-                        <option value="Food">Food</option>
-                        <option value="Medicine">Medicine</option>
-                        <option value="Education">Education</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Leisure">Leisure</option> <!-- ADDED LEISURE -->
-                        <option value="Bills">Bills</option>
-                        <option value="Telecom">Telecom</option>
-                    </select>
-                </div>
-
-                <div id="debtOptions" class="hidden">
-                    <input id="ePerson" type="text" placeholder="Person Name">
-                </div>
-
-                <button onclick="saveEntry()" class="w-full bg-zinc-900 text-white py-5 rounded-2xl text-[11px] font-bold uppercase mt-4">Confirm</button>
-            </div>
-        </div>
+    <!-- Privacy Shield -->
+    <div id="privacyShield" class="fixed inset-0 bg-white/90 backdrop-blur-xl z-[5000] flex flex-col items-center justify-center p-8">
+        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6"><i class="ri-lock-2-fill text-3xl"></i></div>
+        <h2 id="shieldTitle" class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400 mb-8">Secure Access Required</h2>
+        <input type="password" id="entryPin" placeholder="••••" class="text-center text-4xl tracking-[0.4em] border-none bg-transparent w-full mb-8 outline-none">
+        <button onclick="handlePinSubmit()" class="w-full max-w-xs bg-zinc-900 text-white py-5 rounded-2xl text-[11px] font-bold uppercase">Verify PIN</button>
+        <button id="cancelShield" onclick="hideShield()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden">Cancel</button>
     </div>
 
-    <!-- PIN Auth -->
-    <div id="authModal" class="fixed inset-0 hidden items-center justify-center z-[3000] p-6">
-        <div class="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm"></div>
-        <div class="relative bg-white p-8 rounded-3xl w-full max-w-xs text-center">
-            <h3 class="text-xs font-bold uppercase tracking-widest mb-4">Verify PIN</h3>
-            <input type="password" id="pinInput" class="text-center text-2xl tracking-[0.5em] border-b-2 border-indigo-500 bg-transparent">
-            <div class="flex gap-2 mt-4"><button onclick="closeAuthModal()" class="flex-1 py-3 text-[10px] font-bold uppercase text-gray-400">Back</button><button onclick="verifyPin()" class="flex-1 py-3 text-[10px] font-bold uppercase bg-indigo-600 text-white rounded-xl">Unlock</button></div>
+    <div id="appContainer" class="app-content">
+        <header class="p-8 pb-4 flex justify-between items-start bg-white">
+            <div>
+                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em] mb-1">Personal Finance</p>
+                <h1 class="text-3xl font-light tracking-tight text-zinc-900">Private<span class="font-bold">Ledger</span></h1>
+            </div>
+            <div class="text-right">
+                <div class="flex bg-zinc-50 p-1 rounded-xl gap-1 mb-2 scale-90 origin-right">
+                    <button id="btnQAR" onclick="setCurrency('QAR')" class="currency-btn currency-active">QAR</button>
+                    <button id="btnPKR" onclick="setCurrency('PKR')" class="currency-btn">PKR</button>
+                </div>
+                <p id="totalBalance" class="text-2xl font-bold tracking-tighter text-zinc-900">0</p>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Net Position</p>
+            </div>
+        </header>
+
+        <main class="max-w-xl mx-auto p-6 space-y-6">
+            <div class="card-base report-card">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 id="reportMonth" class="text-[11px] font-bold uppercase tracking-widest text-indigo-600">MAY 2026</h3>
+                    <i class="ri-time-line text-indigo-300 text-xl"></i>
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div><p class="text-[9px] uppercase text-gray-400 font-bold mb-2">Earned</p><p id="monthEarned" class="text-lg font-bold text-green-500">0</p></div>
+                    <div class="border-x border-indigo-100"><p class="text-[9px] uppercase text-gray-400 font-bold mb-2">Spent</p><p id="monthSpent" class="text-lg font-bold text-red-500">0</p></div>
+                    <div><p class="text-[9px] uppercase text-gray-400 font-bold mb-2">Savings</p><p id="monthSavings" class="text-lg font-bold text-indigo-600">0</p></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="card-base !bg-indigo-600 text-white shadow-xl">
+                    <p class="text-[10px] font-bold uppercase opacity-80 tracking-widest">To Collect</p>
+                    <h2 id="toCollect" class="text-2xl font-bold mt-2">0</h2>
+                </div>
+                <div class="card-base !bg-zinc-900 text-white shadow-xl">
+                    <p class="text-[10px] font-bold uppercase opacity-80 tracking-widest">To Return</p>
+                    <h2 id="toReturn" class="text-2xl font-bold mt-2">0</h2>
+                </div>
+            </div>
+
+            <div class="card-base border-dashed border-2 bg-transparent">
+                <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500 mb-4">Category Breakdown</h3>
+                <div id="categoryBreakdown" class="grid grid-cols-2 gap-y-3 gap-x-6"></div>
+            </div>
+
+            <div class="relative">
+                <i class="ri-search-line absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
+                <input type="text" id="searchInput" oninput="renderRecords(localRecords)" placeholder="Search people, items, or dates..." class="search-bar">
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex justify-between items-center px-2">
+                    <h3 class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Activity Log</h3>
+                    <button onclick="requestWipe()" class="text-[8px] font-bold uppercase text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100">Wipe All</button>
+                </div>
+                <div id="activityLog" class="space-y-4 pb-10"></div>
+            </div>
+        </main>
+
+        <nav>
+            <button onclick="openModal('Lent')" class="flex flex-col items-center gap-1 text-zinc-400"><i class="ri-group-line text-2xl"></i><span class="text-[10px] font-bold uppercase">Lent</span></button>
+            <button onclick="openModal('General')" class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-2xl -translate-y-6 active:scale-90 transition-all"><i class="ri-add-line text-4xl"></i></button>
+            <button onclick="openModal('Borrowed')" class="flex flex-col items-center gap-1 text-zinc-400"><i class="ri-hand-coin-line text-2xl"></i><span class="text-[10px] font-bold uppercase">Borrowed</span></button>
+        </nav>
+    </div>
+
+    <div id="entryModal" class="fixed inset-0 hidden items-center justify-center z-[2000] p-6">
+        <div class="absolute inset-0 bg-zinc-950/40 backdrop-blur-md" onclick="closeModal()"></div>
+        <div class="relative w-full max-w-md bg-white rounded-[35px] p-8 shadow-2xl">
+            <h2 id="modalTitle" class="text-center text-[10px] font-bold uppercase mb-8 tracking-[0.3em]">New Entry</h2>
+            <div id="generalTypeToggle" class="hidden grid grid-cols-2 gap-2 mb-6">
+                <button onclick="setSubType('Expense')" id="btnExp" class="py-3 text-[10px] font-bold uppercase rounded-xl border-2 border-indigo-600 text-indigo-600">Spend</button>
+                <button onclick="setSubType('Income')" id="btnInc" class="py-3 text-[10px] font-bold uppercase rounded-xl border-2 border-transparent bg-zinc-50 text-zinc-400">Earn</button>
+            </div>
+            <div class="space-y-2">
+                <input id="eDesc" type="text" placeholder="Description" class="bg-zinc-50 border-none p-4 rounded-2xl w-full outline-none">
+                <input id="eAmount" type="number" placeholder="0.00" class="bg-zinc-50 border-none p-4 rounded-2xl text-xl font-bold w-full outline-none">
+                <div id="generalOptions" class="hidden">
+                    <select id="eCategory" class="bg-zinc-50 border-none p-4 rounded-2xl w-full outline-none">
+                        <option value="Other">Category</option>
+                        <option value="Food">Food</option><option value="Medicine">Medicine</option><option value="Education">Education</option><option value="Travel">Travel</option><option value="Leisure">Leisure</option><option value="Bills">Bills</option><option value="Telecom">Telecom</option>
+                    </select>
+                </div>
+                <div id="debtOptions" class="hidden"><input id="ePerson" type="text" placeholder="Person's Name" class="bg-zinc-50 border-none p-4 rounded-2xl w-full outline-none"></div>
+                <button onclick="saveEntry()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl text-[11px] font-bold uppercase mt-6">Confirm</button>
+            </div>
         </div>
     </div>
 
@@ -145,162 +144,163 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let localRecords = [];
+        let currentCurrency = 'QAR';
         let currentMainType = '';
         let currentSubType = 'Expense';
         let pendingAction = null;
+        let pendingId = null;
+
+        window.onload = () => { showShield("Secure Access Required", false); };
+
+        function showShield(title, showCancel) {
+            document.getElementById('shieldTitle').innerText = title;
+            document.getElementById('cancelShield').style.display = showCancel ? 'block' : 'none';
+            document.getElementById('privacyShield').style.display = 'flex';
+            document.getElementById('entryPin').focus();
+        }
+
+        function hideShield() {
+            document.getElementById('privacyShield').style.display = 'none';
+            document.getElementById('entryPin').value = '';
+            pendingAction = null;
+            pendingId = null;
+        }
+
+        async function handlePinSubmit() {
+            const entered = document.getElementById('entryPin').value;
+            const { data } = await _supabase.from('secret_auth').select('pin_code').eq('pin_code', entered).single();
+            if (data) {
+                if (!pendingAction) {
+                    document.getElementById('appContainer').classList.add('app-unlocked');
+                    fetchRecords();
+                    hideShield();
+                } else if (pendingAction === 'WIPE') {
+                    await _supabase.from('personal_expenses').delete().eq('currency', currentCurrency);
+                    fetchRecords(); hideShield();
+                } else if (pendingAction === 'DELETE') {
+                    await _supabase.from('personal_expenses').delete().eq('id', pendingId);
+                    fetchRecords(); hideShield();
+                }
+            } else { alert("Invalid PIN"); document.getElementById('entryPin').value = ''; }
+        }
+
+        function requestWipe() { pendingAction = 'WIPE'; showShield("PIN required to Wipe All", true); }
+        function requestDelete(id) { pendingAction = 'DELETE'; pendingId = id; showShield("PIN required to delete", true); }
 
         async function fetchRecords() {
             const { data } = await _supabase.from('personal_expenses').select('*').order('created_at', { ascending: false });
             if (data) { localRecords = data; renderRecords(localRecords); }
         }
 
-        async function clearAllRecords() {
-            if(!confirm("Are you absolutely sure you want to delete EVERY record? This cannot be undone.")) return;
-            const { error } = await _supabase.from('personal_expenses').delete().neq('id', 0); 
-            if (error) {
-                alert("Error wiping records: " + error.message);
-            } else {
-                alert("All records have been cleared.");
-                fetchRecords();
-            }
+        function setCurrency(c) {
+            currentCurrency = c;
+            document.getElementById('btnQAR').classList.toggle('currency-active', c === 'QAR');
+            document.getElementById('btnPKR').classList.toggle('currency-active', c === 'PKR');
+            renderRecords(localRecords);
         }
 
-        function formatFullTime(isoString) {
-            const date = new Date(isoString);
-            return date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' }) + ' • ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        function formatDateTime(iso) {
+            const d = new Date(iso);
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            return `${days[d.getDay()]} ${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]} • ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
 
         function renderRecords(records) {
-            let logHTML = '';
-            let net = 0, mEarned = 0, mSpent = 0;
-            // Updated Categories Object
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = records.filter(r => r.currency === currentCurrency && (r.description.toLowerCase().includes(search) || (r.person && r.person.toLowerCase().includes(search))));
+            
+            let logHTML = ''; let net = 0, mEarn = 0, mSpent = 0;
             const cats = { Food: 0, Medicine: 0, Education: 0, Telecom: 0, Bills: 0, Travel: 0, Leisure: 0, Other: 0 };
             const peopleDebt = {}; 
             const now = new Date();
-
-            records.forEach(r => {
-                const amt = r.amount;
-                const rDate = new Date(r.created_at);
-                const isThisMonth = rDate.getMonth() === now.getMonth() && rDate.getFullYear() === now.getFullYear();
-
-                if (r.type === 'Income' || r.type === 'Borrowed') net += amt;
-                else net -= amt;
-
-                if (isThisMonth) {
-                    if (r.type === 'Income') mEarned += amt;
-                    if (r.type === 'Expense') mSpent += amt;
+            
+            // Calculate debts FIRST to know what needs settling
+            filtered.forEach(r => {
+                let pKey = r.person || (r.description.startsWith('Settle:') ? r.description.split(': ')[1] : null);
+                if (pKey) {
+                    if (!peopleDebt[pKey]) peopleDebt[pKey] = 0;
+                    if (r.type === 'Lent') peopleDebt[pKey] += r.amount;
+                    if (r.type === 'Borrowed') peopleDebt[pKey] -= r.amount;
+                    if (r.type === 'Expense' && r.description.startsWith('Settle:')) peopleDebt[pKey] += r.amount;
+                    if (r.type === 'Income' && r.description.startsWith('Settle:')) peopleDebt[pKey] -= r.amount;
                 }
+            });
 
-                if (r.type === 'Expense') cats[r.category || 'Other'] += amt;
+            filtered.forEach(r => {
+                const isThisMonth = new Date(r.created_at).getMonth() === now.getMonth() && new Date(r.created_at).getFullYear() === now.getFullYear();
+                if (r.type === 'Income' || r.type === 'Borrowed') net += r.amount; else net -= r.amount;
+                if (isThisMonth) { if (r.type === 'Income') mEarn += r.amount; if (r.type === 'Expense') mSpent += r.amount; }
+                if (r.type === 'Expense') cats[r.category || 'Other'] += r.amount;
 
-                let personKey = r.person || (r.description.startsWith('Settle:') ? r.description.split(': ')[1] : null);
-                if (personKey) {
-                    if (!peopleDebt[personKey]) peopleDebt[personKey] = 0;
-                    if (r.type === 'Lent') peopleDebt[personKey] += amt;
-                    if (r.type === 'Borrowed') peopleDebt[personKey] -= amt;
-                    if (r.type === 'Expense' && r.description.startsWith('Settle:')) peopleDebt[personKey] += amt;
-                    if (r.type === 'Income' && r.description.startsWith('Settle:')) peopleDebt[personKey] -= amt;
-                }
+                let badge = `badge-${r.type.toLowerCase()}`;
+                let label = r.type + (r.person ? ` (${r.person})` : '');
+                let action = '';
 
-                let badgeClass = r.type === 'Lent' ? 'badge-lent' : (r.type === 'Borrowed' ? 'badge-borrow' : (r.type === 'Income' ? 'badge-income' : 'badge-settled'));
-                let typeLabel = (r.type === 'Income' || r.type === 'Expense') ? r.type : `${r.type} (${r.person})`;
-                
-                let actionBtn = '';
-                if (r.type === 'Borrowed' && peopleDebt[r.person] < 0) {
-                    actionBtn = `<button onclick="settleEntry('${r.person}', ${amt}, 'Expense')" class="text-[9px] font-bold text-red-500 bg-red-50 px-2 py-1 rounded-md ml-2">Pay Back</button>`;
-                } else if (r.type === 'Lent' && peopleDebt[r.person] > 0) {
-                    actionBtn = `<button onclick="settleEntry('${r.person}', ${amt}, 'Income')" class="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md ml-2">Received</button>`;
+                // RESTORED SETTLE BUTTON LOGIC
+                if (r.type === 'Borrowed' && r.person && peopleDebt[r.person] < 0) {
+                    action = `<button onclick="settle('${r.person}', ${r.amount}, 'Expense')" class="action-btn">Pay Back</button>`;
+                } else if (r.type === 'Lent' && r.person && peopleDebt[r.person] > 0) {
+                    action = `<button onclick="settle('${r.person}', ${r.amount}, 'Income')" class="action-btn action-btn-green">Received</button>`;
                 }
 
                 logHTML += `
-                    <div class="card-personal !p-5 flex justify-between items-center shadow-sm">
+                    <div class="card-base !p-6 flex justify-between items-center shadow-sm mb-4">
                         <div>
-                            <p class="text-sm font-medium">${r.description}</p>
-                            <p class="text-[9px] text-zinc-300 font-bold uppercase mt-1">${formatFullTime(r.created_at)}</p>
-                            <div class="flex items-center gap-2 mt-2">
-                                <span class="${badgeClass}">${typeLabel}</span>
-                                ${actionBtn}
-                            </div>
+                            <p class="text-base font-bold">${r.description}</p>
+                            <p class="text-[10px] text-zinc-300 font-bold uppercase mt-1">${formatDateTime(r.created_at)}</p>
+                            <div class="mt-3 flex items-center"><span class="badge-pill ${badge}">${label}</span>${action}</div>
                         </div>
                         <div class="text-right flex items-center gap-4">
-                            <p class="text-sm font-bold">${amt.toLocaleString()}</p>
-                            <button onclick="openAuthModal(() => deleteRecord(${r.id}))" class="text-zinc-200 hover:text-red-500"><i class="ri-delete-bin-line text-lg"></i></button>
+                            <p class="text-lg font-bold">${r.amount.toLocaleString()}</p>
+                            <button onclick="requestDelete(${r.id})" class="text-zinc-200"><i class="ri-delete-bin-line text-lg"></i></button>
                         </div>
                     </div>`;
             });
 
-            let totalToCollect = 0, totalToReturn = 0;
-            Object.values(peopleDebt).forEach(val => {
-                if (val > 0) totalToCollect += val;
-                if (val < 0) totalToReturn += Math.abs(val);
-            });
-
-            document.getElementById('activityLog').innerHTML = logHTML;
-            document.getElementById('toCollect').innerText = totalToCollect.toLocaleString();
-            document.getElementById('toReturn').innerText = totalToReturn.toLocaleString();
-            document.getElementById('totalBalance').innerText = net.toLocaleString();
-            document.getElementById('monthEarned').innerText = mEarned.toLocaleString();
+            let col = 0, ret = 0;
+            Object.values(peopleDebt).forEach(v => { if (v > 0) col += v; if (v < 0) ret += Math.abs(v); });
+            document.getElementById('activityLog').innerHTML = logHTML || '<p class="text-center text-gray-400 py-10">Empty Ledger</p>';
+            document.getElementById('toCollect').innerText = col.toLocaleString();
+            document.getElementById('toReturn').innerText = ret.toLocaleString();
+            document.getElementById('totalBalance').innerText = (net < 0 ? '-' : '') + Math.abs(net).toLocaleString();
+            document.getElementById('monthEarned').innerText = mEarn.toLocaleString();
             document.getElementById('monthSpent').innerText = mSpent.toLocaleString();
-            document.getElementById('monthSavings').innerText = (mEarned - mSpent).toLocaleString();
+            document.getElementById('monthSavings').innerText = (mEarn - mSpent).toLocaleString();
 
-            let catHTML = '';
-            for (let [name, val] of Object.entries(cats)) {
-                if (val > 0) catHTML += `<div class="text-[11px]"><span class="text-gray-400 mr-2">${name}:</span><b>${val.toLocaleString()}</b></div>`;
+            let cHTML = '';
+            for (let [n, v] of Object.entries(cats)) if (v > 0) cHTML += `<div class="text-[12px] flex justify-between w-full"><span class="text-gray-400">${n}:</span><b class="text-zinc-800">${v.toLocaleString()}</b></div>`;
+            document.getElementById('categoryBreakdown').innerHTML = cHTML || '<p class="text-gray-300 text-[10px]">No expenses.</p>';
+        }
+
+        async function settle(p, a, t) {
+            if(confirm(`Settle ${p}?`)) {
+                await _supabase.from('personal_expenses').insert([{ description: `Settle: ${p}`, amount: a, type: t, currency: currentCurrency, category: 'Other' }]);
+                fetchRecords();
             }
-            document.getElementById('categoryBreakdown').innerHTML = catHTML || '<p class="text-gray-300 text-[10px]">No expenses logged.</p>';
         }
-
-        async function settleEntry(person, amount, offsetType) {
-            if(!confirm(`Confirm settlement for ${person}?`)) return;
-            await _supabase.from('personal_expenses').insert([{
-                description: `Settle: ${person}`, amount: amount, type: offsetType, category: 'Other'
-            }]);
-            fetchRecords();
-        }
-
-        function filterRecords() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            renderRecords(localRecords.filter(r => r.description.toLowerCase().includes(q) || (r.person && r.person.toLowerCase().includes(q))));
-        }
-
-        function openModal(type) {
-            currentMainType = type;
-            document.getElementById('debtOptions').className = (type === 'General') ? 'hidden' : 'block';
-            document.getElementById('generalOptions').className = (type === 'General') ? 'block' : 'hidden';
-            document.getElementById('generalTypeToggle').style.display = (type === 'General') ? 'grid' : 'none';
-            document.getElementById('entryModal').style.display = 'flex';
-        }
-
-        function setSubType(sub) {
-            currentSubType = sub;
-            document.getElementById('btnExp').className = sub === 'Expense' ? 'py-2 text-[10px] font-bold uppercase rounded-xl border-2 border-indigo-600 text-indigo-600' : 'py-2 text-[10px] font-bold uppercase rounded-xl border-2 border-transparent bg-zinc-50 text-zinc-400';
-            document.getElementById('btnInc').className = sub === 'Income' ? 'py-2 text-[10px] font-bold uppercase rounded-xl border-2 border-green-600 text-green-600' : 'py-2 text-[10px] font-bold uppercase rounded-xl border-2 border-transparent bg-zinc-50 text-zinc-400';
-        }
-
-        function closeModal() { document.getElementById('entryModal').style.display = 'none'; }
 
         async function saveEntry() {
-            const desc = document.getElementById('eDesc').value;
-            const amt = parseFloat(document.getElementById('eAmount').value);
-            const person = document.getElementById('ePerson').value;
-            const finalType = (currentMainType === 'General') ? currentSubType : currentMainType;
-            if(!desc || !amt) return;
-            await _supabase.from('personal_expenses').insert([{
-                description: desc, amount: amt, type: finalType, person: (finalType === 'Income' || finalType === 'Expense') ? null : person, category: document.getElementById('eCategory').value
+            const d = document.getElementById('eDesc').value; const a = parseFloat(document.getElementById('eAmount').value);
+            const t = currentMainType === 'General' ? currentSubType : currentMainType;
+            if(!d || !a) return;
+            await _supabase.from('personal_expenses').insert([{ 
+                description: d, amount: a, type: t, currency: currentCurrency, 
+                person: (t === 'Income' || t === 'Expense') ? null : document.getElementById('ePerson').value, 
+                category: document.getElementById('eCategory').value 
             }]);
             fetchRecords(); closeModal();
         }
 
-        async function deleteRecord(id) { await _supabase.from('personal_expenses').delete().eq('id', id); fetchRecords(); }
-        async function verifyPin() {
-            const entered = document.getElementById('pinInput').value;
-            const { data } = await _supabase.from('secret_auth').select('pin_code').eq('pin_code', entered).single();
-            if (data) { pendingAction(); closeAuthModal(); } else alert("Wrong PIN");
+        function openModal(t) { 
+            currentMainType = t; 
+            document.getElementById('debtOptions').className = t === 'General' ? 'hidden' : 'block';
+            document.getElementById('generalOptions').className = t === 'General' ? 'block' : 'hidden';
+            document.getElementById('generalTypeToggle').style.display = t === 'General' ? 'grid' : 'none';
+            document.getElementById('entryModal').style.display = 'flex';
         }
-        function openAuthModal(cb) { pendingAction = cb; document.getElementById('authModal').style.display = 'flex'; }
-        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; document.getElementById('pinInput').value = ''; }
-
-        fetchRecords();
+        function closeModal() { document.getElementById('entryModal').style.display = 'none'; }
+        function setSubType(s) { currentSubType = s; }
     </script>
 </body>
 </html>
